@@ -4,5 +4,5 @@
 
 # How to
 
-- Installing Vencord so you can use custom plugins like these: [Click me](https://github.com/Vendicated/Vencord/blob/main/docs/1_INSTALLING.md)
-- Configuring the plugin and applying it to Vencord: [Click me](https://github.com/Vendicated/Vencord/blob/main/docs/2_PLUGINS.md)
+- Installing Vencord so you can use custom plugins like these: [Click me](https://docs.vencord.dev/installing/)
+- Configuring the plugin and applying it to Vencord: [Click me](https://docs.vencord.dev/installing/custom-plugins/)
