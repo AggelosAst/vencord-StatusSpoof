@@ -1,4 +1,4 @@
--# Vencord StatusSpoof
+# Vencord StatusSpoof
 
 ## This plugin lets you sppof your platform between mobile and console with setting a *trap* (mostly known as a intercept) to modify the `IDENTIFY` packet discord sends for every new/old session. Be careful when using this.
 
@@ -9,7 +9,7 @@
 
 # Its not working! Help!
 
-- To assist me into assisting you, make sure you show me your `Developer Tools` Console before creating an issue etc and let me know
+- To help me into assist you, make sure you show me your `Developer Tools` Console before creating an issue etc and let me know
 
   Example:
   
