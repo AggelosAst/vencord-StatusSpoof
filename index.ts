@@ -20,6 +20,7 @@ import definePlugin, {StartAt} from "@utils/types";
 import {settings} from "./libs/settings";
 import {Platforms} from "./types/Platforms";
 import {IdentifyPacket} from "./types/IdentifyPacket";
+import {pack, unpack} from "./libs/erlpack";
 
 export default definePlugin({
     name: "StatusSpoof",
@@ -30,9 +31,11 @@ export default definePlugin({
             name: "Aggelos",
         },
     ],
-    startAt: StartAt.Init /* Init, DOMContentLoaded*/,
+    startAt: StartAt.DOMContentLoaded /* Init, DOMContentLoaded*/,
     settings: settings,
     start() {
+        const pluginName = this.name;
+
         const oldWebsocket = WebSocket;
         oldWebsocket.prototype.send = new Proxy(oldWebsocket.prototype.send, {
             apply(
@@ -43,35 +46,48 @@ export default definePlugin({
                 argArray: any[]
             ): any {
                 if (thisArg.url.includes("wss://gateway.discord.gg")) {
-                    console.log(`[HOOK] [${thisArg.url}] Hooked send function`);
+                    let data!: IdentifyPacket
+                    let isETF: boolean = false
+                    if (thisArg.url.includes("?encoding=etf")) {
+                        console.warn(`[${pluginName}]: Client is using ETF Encoding (External Term Format). Utilizing decoder/encoder`)
+                        isETF = true
+                        data = unpack(argArray[0])
+                    } else if (thisArg.url.includes("?encoding=json")) {
+                        console.warn(`[${pluginName}]: Client is using JSON Encoding (Javascript Object Notation). Utilizing parser`)
+                        data = JSON.parse(argArray[0])
+                    }
+                    console.info(`[${pluginName}] [${thisArg.url}] Hooked send function`);
+
                     try {
-                        const data: IdentifyPacket = JSON.parse(
-                            argArray.at(0)
-                        ) as IdentifyPacket;
                         if (data.op === 2) {
-                            console.log(`[HOOK] [${thisArg.url}] Hooking IDENTIFY packet`);
+                            console.info(`[${pluginName}] Hooking IDENTIFY packet`);
                             if (settings.store.platform == Platforms.android) {
-                                data.d.properties.os = "Android";
-                                data.d.properties.browser = "Discord Android";
-                                data.d.properties.device = "Samsung Galaxy";
-                                data.d.properties.browser_user_agent =
+                                data.d.properties["os"] = "Android";
+                                data.d.properties["browser"] = "Discord Android";
+                                data.d.properties["device"] = "Samsung Galaxy";
+                                data.d.properties["browser_user_agent"] =
                                     "Mozilla/5.0 (Linux; Android 12; SM-G998U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Mobile Safari/537.36";
-                                data.d.properties.browser_version = "108.0";
-                                data.d.properties.os_version = "12";
-                                argArray[0] = JSON.stringify(data);
+                                data.d.properties["browser_version"] = "108.0";
+                                data.d.properties["os_version"] = "12";
                             } else if (settings.store.platform == Platforms.console) {
-                                data.d.properties.os = "Embedded";
-                                data.d.properties.browser = "Discord Embedded";
-                                data.d.properties.device = "Xbox";
-                                data.d.properties.browser_user_agent =
+                                data.d.properties["os"] = "Embedded";
+                                data.d.properties["browser"] = "Discord Embedded";
+                                data.d.properties["device"] = "Xbox";
+                                data.d.properties["browser_user_agent"] =
                                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; Xbox; Xbox Series X) AppleWebKit/537.36 (KHTML, like Gecko) PlayStation Chrome/48.0.2564.82 Safari/537.36 Edge/20.02";
-                                data.d.properties.browser_version = "108.0";
-                                data.d.properties.os_version = "";
+                                data.d.properties["browser_version"] = "108.0";
+                                data.d.properties["os_version"] = "";
+                            }
+
+                            if (isETF) {
+                                argArray[0] = pack(data);
+                            } else {
                                 argArray[0] = JSON.stringify(data);
                             }
+
                         }
                     } catch (e) {
-                        console.log(
+                        console.error(
                             `[HOOK] [${thisArg.url}] Could not parse JSON data. Probably `
                         );
                     }
